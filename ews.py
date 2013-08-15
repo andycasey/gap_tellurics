@@ -1,6 +1,6 @@
 # coding: utf-8
 
-""" Measure equivalent widths of absorption lines in stellar spectra.  """
+""" Measure equivalent widths of absorption lines in stellar spectra. """
 
 from __future__ import division, print_function
 
