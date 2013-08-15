@@ -1,0 +1,5 @@
+{
+    "atomic_line_list_filename": "atomic_lines.list",
+    "telluric_filename": "telluric_standard.fits",
+    "initial_fwhm_guess": 0.1
+}
