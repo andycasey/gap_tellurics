@@ -782,9 +782,11 @@ def compute_non_linear_disp(nwave, specstr, verbose=False):
 
     fields = specstr.split()
     if int(fields[2]) != 2:
-        raise ValueError('Not nonlinear dispersion: dtype=' + fields[2])
+        raise ValueError('not a non-linear dispersion: dtype={dtype}'.format(dtype=fields[2]))
+
     if len(fields) < 12:
-        raise ValueError('Bad spectrum format (only %d fields)' % len(fields))
+        raise ValueError('bad spectrum format (only {nfields} fields)'.format(nfields=len(fields)))
+
     wt = float(fields[9])
     w0 = float(fields[10])
     ftype = int(fields[11])
@@ -793,14 +795,18 @@ def compute_non_linear_disp(nwave, specstr, verbose=False):
         # cubic spline
 
         if len(fields) < 15:
-            raise ValueError('Bad spline format (only %d fields)' % len(fields))
+            raise ValueError('bad spline format (only {nfields} fields)'.format(nfields=len(fields)))
+
         npieces = int(fields[12])
         pmin = float(fields[13])
         pmax = float(fields[14])
+
         if verbose:
-            print 'Dispersion is order-%d cubic spline' % npieces
+            logging.info('Dispersion is order-{npieces} cubic spline'.format(npieces=npieces))
+
         if len(fields) != 15+npieces+3:
-            raise ValueError('Bad order-%d spline format (%d fields)' % (npieces,len(fields)))
+            raise ValueError('bad order-{npieces} spline format ({nfields} fields)'.format(npieces=npieces, nfields=len(fields)))
+
         coeff = np.asarray(fields[15:],dtype=float)
         # normalized x coordinates
         s = (np.arange(nwave,dtype=float)+1-pmin)/(pmax-pmin)*npieces
@@ -819,17 +825,21 @@ def compute_non_linear_disp(nwave, specstr, verbose=False):
         # legendre not tested yet
 
         if len(fields) < 15:
-            raise ValueError('Bad polynomial format (only %d fields)' % len(fields))
+            raise ValueError('bad polynomial format (only {nfields} fields)'.format(nfields=len(fields)))
+
         order = int(fields[12])
         pmin = float(fields[13])
         pmax = float(fields[14])
         if verbose:
             if ftype == 1:
-                print 'Dispersion is order-%d Chebyshev polynomial' % order
+                logging.info('Dispersion is order-{n} Chebyshev polynomial'.format(n=order))
+
             else:
-                print 'Dispersion is order-%d Legendre polynomial (NEEDS TEST)' % order
+                logging.warn('Dispersion is order-{n} Legendre polynomial (NEEDS TEST)'.format(n=order))
+
         if len(fields) != 15+order:
-            raise ValueError('Bad order-%d polynomial format (%d fields)' % (order, len(fields)))
+            raise ValueError('bad order-{n} polynomial format ({nfields} fields)'.format(n=order, nfields=len(fields)))
+
         coeff = np.asarray(fields[15:],dtype=float)
         # normalized x coordinates
         pmiddle = (pmax+pmin)/2
@@ -850,6 +860,6 @@ def compute_non_linear_disp(nwave, specstr, verbose=False):
             p1 = p2
 
     else:
-        raise ValueError('Cannot handle dispersion function of type %d' % ftype)
+        raise ValueError('cannot handle dispersion function of type {ftype}'.format(ftype=ftype))
 
     return wave, fields
