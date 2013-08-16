@@ -1,5 +1,10 @@
 {
-    "atomic_line_list_filename": "atomic_lines.list",
-    "telluric_filename": "telluric_standard.fits",
-    "initial_fwhm_guess": 0.1
+    "observed_filename": "data/observed_spectrum.fits",
+    "telluric_filename": "data/telluric_spectrum.fits",
+    "atomic_line_list_filename": "data/atomic_lines.list",
+    "initial_fwhm_guess": 0.1,
+    "allow_shift": true,
+    "allow_scale": true,
+    "allow_smooth": true,
+    "ew_error_percent": 0.05
 }
