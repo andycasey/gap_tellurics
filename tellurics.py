@@ -40,10 +40,10 @@ def perform_telluric_analysis(observed_filename, telluric_filename,
     """
 
     if not os.path.exists(observed_filename):
-        raise IOError("observed spectrum filename ({filename}) does not exist.".format(filename=observed_filename))
+        raise IOError("observed spectrum filename ({filename}) does not exist".format(filename=observed_filename))
 
     if not os.path.exists(telluric_filename):
-        raise IOError("telluric spectrum filename ({filename}) does not exist.".format(filename=telluric_filename))
+        raise IOError("telluric spectrum filename ({filename}) does not exist".format(filename=telluric_filename))
 
     if not isinstance(initial_fwhm_guess, (float, int, )):
         raise TypeError("initial FWHM guess must be a float-type")
@@ -110,17 +110,3 @@ def perform_telluric_analysis(observed_filename, telluric_filename,
     return contaminated_absorption_lines
 
 
-def remove_telluric_absorption(observed_spectrum, telluric_spectrum, **kwargs):
-    """Corrects an observed spectrum for telluric absorption, allowing
-    for flux scaling, radial velocity shifts, and instrumental broadening.
-
-    Inputs
-    ------
-    observed_spectrum : `str`
-        The filename for the observed spectrum to be corrected for tellurics.
-
-    telluric_spectrum : `str`
-        The filename for the telluric spectrum to be used for corrections.
-    """
-
-    raise NotImplementedError
