@@ -18,7 +18,8 @@ from specutils import Spectrum1D
 
 
 def perform_telluric_analysis(observed_filename, telluric_filename,
-    atomic_rest_wavelengths, initial_fwhm_guess, ew_error_percent=0.05, **kwargs):
+    atomic_rest_wavelengths, initial_fwhm_guess, allow_shift, allow_scale,
+    allow_smooth, ew_error_percent=0.05, **kwargs):
     """Measures equivalent widths for atomic absorption lines, corrects the
     HERMES spectra for telluric absorption, and re-measures equivalent widths
     to ascertain a quantitative measurement of telluric contamination for
@@ -37,6 +38,21 @@ def perform_telluric_analysis(observed_filename, telluric_filename,
 
     initial_fwhm_guess : `float`
         Initial guess for the absorption line FWHM in Angstroms
+
+    allow_shift : `bool`
+        Allow for small radial velocity shifts in the telluric spectrum.
+
+    allow_scale : `bool`
+        Allow for a free scaling factor to be applied to the telluric flux.
+
+    allow_smooth : `bool`
+        Allow for additional smoothing to be applied to the telluric flux.
+
+    Notes
+    -----
+    Allowing for additional smoothing to be applied to the telluric flux has the
+    implied assumption that the telluric spectrum is *always* at a higher resolution
+    (e.g. under-smoothed) with respect to the observed spectrum.
     """
 
     if not os.path.exists(observed_filename):
@@ -64,21 +80,15 @@ def perform_telluric_analysis(observed_filename, telluric_filename,
 
     # Step 1: Measure equivalent widths for all atomic lines
     #------------------------------------------------------#
-    # We need to check the initial FWHM value from the configuration file.
-
+    
     initial_equivalent_widths = {}
     for rest_wavelength in atomic_rest_wavelengths:        
         initial_equivalent_widths[rest_wavelength] = measure_line(observed_spectrum, rest_wavelength, initial_fwhm_guess, **kwargs)
 
     # Step 2: Correct for telluric absorption
     #---------------------------------------#
-    # We need to allow for a scale, shift and broadening (C, Vrad, and \sigma)
-    # in the telluric spectrum.
+    corrected_observed_spectrum = observed_spectrum.remove_telluric_absorption(telluric_spectrum, allow_shift, allow_scale, allow_smooth)
 
-    # NOTE: This assumes that the telluric spectrum is *always* under-smoothed
-    # with respect to the observed spectrum.
-
-    corrected_observed_spectrum = remove_telluric_absorption(observed_spectrum, telluric_spectrum, **kwargs)
 
     # Step 3: Measure equivalent widths for all atomic lines in the telluric-corrected spectrum
     #-----------------------------------------------------------------------------------------#
