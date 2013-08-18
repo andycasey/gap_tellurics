@@ -268,7 +268,10 @@ def perform_telluric_analysis(observed_filename, telluric_filename,
 
         else: continue
 
-    plt.close(figure)
+    try: figure
+    except NameError: _ = ''
+    else:
+        plt.close(figure)
 
     return contaminated_absorption_lines
 

@@ -31,8 +31,9 @@ def test_load_configuration():
 
 
 def test_verify_configuration():
+    logging.debug("test_verify_configuration() with configuration_filename={configuration_filename}".format(configuration_filename=configuration_filename))
 
-    configuration = test_load_configuration(configuration_filename)
+    configuration = test_load_configuration()
 
     # Check for configuration keywords
     required_configuration_keywords = 'observed_filename, telluric_filename, atomic_line_list_filename, initial_fwhm_guess, allow_shift, allow_scale, allow_smooth'.split(', ')
@@ -43,9 +44,9 @@ def test_verify_configuration():
 
 def test_perform_telluric_analysis():
 
-    logging.debug("test_perform_telluric_analysis({configuration_filename})".format(configuration_filename=configuration_filename))
+    logging.debug("test_perform_telluric_analysis() with configuration_filename={configuration_filename}".format(configuration_filename=configuration_filename))
 
-    configuration = test_load_configuration(configuration_filename)
+    configuration = test_load_configuration()
 
     keywords = 'observed_filename, telluric_filename, atomic_line_list_filename, initial_fwhm_guess, allow_shift, allow_scale, allow_smooth'.split(', ')
 
