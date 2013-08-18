@@ -1,33 +1,18 @@
+branches:
+  only:
+    - master
 language: python
-
 python:
-    - 2.7
-    - 2.6
-env:
-    - NUMPY_VERSION=1.7.1 ONLY_EGG_INFO=false
-    - NUMPY_VERSION=1.6.2 ONLY_EGG_INFO=false
-    #- NUMPY_VERSION=1.5.1 ONLY_EGG_INFO=false
-    #- NUMPY_VERSION=1.4.1 ONLY_EGG_INFO=false
-    
+  - 2.5
+  - 2.6
+  - 2.7
 before_install:
-   # http://about.travis-ci.org/docs/user/gui-and-headless-browsers/
-   - "export DISPLAY=:99.0"
-   - "sh -e /etc/init.d/xvfb start"
-   # We do this to make sure we get the dependencies so pip works below
-   - sudo apt-get update -qq 
-   - sudo apt-get install -qq python-numpy cython libatlas-dev liblapack-dev gfortran
-   - sudo apt-get install -qq python-scipy 
-   - sudo apt-get install -qq tk8.5
-   - sudo apt-get install -qq python-tk
-   - if [[ $TRAVIS_PYTHON_VERSION == "2.6" ]]; then sudo apt-get install -qq python2.6-tk; fi
-   - if [[ $TRAVIS_PYTHON_VERSION == "2.7" ]]; then sudo apt-get install -qq python2.7-tk; fi
-   - sudo apt-get build-dep python-matplotlib
-   - sudo apt-get install -qq python-matplotlib
+  - sudo apt-get install libcfitsio3-dev python-matplotlib python-pyfits
+# command to install dependencies
 install: 
-   - export PYTHONIOENCODING=UTF8 # just in case
-   - pip install --upgrade "numpy==$NUMPY_VERSION" -q --use-mirrors
-   - pip install matplotlib --use-mirrors
-   - pip install scipy --use-mirrors
-   - pip install pyfits --use-mirrors
-   - pip install ordereddict --use-mirrors
-script: nosetests
+  - pip install -r requirements.txt --use-mirrors
+# command to run tests
+script:
+  - nosetests
+notifications:
+  email: false

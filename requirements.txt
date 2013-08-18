@@ -1,0 +1,5 @@
+numpy
+cython==0.16
+scipy
+matplotlib==1.0.1
+pyfits
