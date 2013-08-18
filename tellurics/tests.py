@@ -21,7 +21,7 @@ configuration_filename = '../HERMES.json'
 logging.basicConfig(level=logging.DEBUG)
 
 
-def test_load_configuration(configuration_filename):
+def test_load_configuration():
 
     # Load the configration file
     with open(configuration_filename, 'r') as fp:
@@ -30,7 +30,7 @@ def test_load_configuration(configuration_filename):
     return configuration
 
 
-def test_verify_configuration(configuration_filename):
+def test_verify_configuration():
 
     configuration = test_load_configuration(configuration_filename)
 
@@ -41,7 +41,7 @@ def test_verify_configuration(configuration_filename):
         assert keyword in configuration
 
 
-def test_perform_telluric_analysis(configuration_filename):
+def test_perform_telluric_analysis():
 
     logging.debug("test_perform_telluric_analysis({configuration_filename})".format(configuration_filename=configuration_filename))
 
