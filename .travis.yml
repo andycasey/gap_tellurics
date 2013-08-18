@@ -8,5 +8,5 @@ virtualenv:
   system_site_packages: true
 before_install:
  - sudo apt-get install -qq python-numpy python-scipy
- - pip install pyfits
+ - sudo pip install pyfits
 script: nosetests
