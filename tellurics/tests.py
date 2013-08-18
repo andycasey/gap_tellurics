@@ -41,7 +41,7 @@ def test_verify_configuration():
     for keyword in required_configuration_keywords:
         assert keyword in configuration
 
-
+'''
 def test_perform_telluric_analysis():
 
     logging.debug("test_perform_telluric_analysis() with configuration_filename={configuration_filename}".format(configuration_filename=configuration_filename))
@@ -57,3 +57,4 @@ def test_perform_telluric_analysis():
 
     # Perform a test
     return tellurics.perform_telluric_analysis(observed_filename, telluric_filename, atomic_rest_wavelengths, initial_fwhm_guess, allow_shift, allow_scale, allow_smooth)#, output_plots=True)
+'''
