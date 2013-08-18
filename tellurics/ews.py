@@ -279,20 +279,26 @@ def measure_line(spectrum, rest_wavelength, fwhm_guess, function='gaussian',
     
     except:
         # If we couldn't fit a rest_wavelength
+        logging.info("Failed to measure equivalent width at {rest_wavelength:.3f}: exception in first pass".format(rest_wavelength=rest_wavelength))
         return [False, wl_start, wl_end, 'exception in first pass']
         
     else:
         
         # Was the fitting successful?
         if ier not in range(5):
+            logging.info("Failed to measure equivalent width at {rest_wavelength:.3f}: the fitting algorithm returned error code {ier}"
+                .format(rest_wavelength=rest_wavelength, ier=ier))
             return [False, wl_start, wl_end, mesg]
         
         # Is the fwhm_guess reasonable?
         if p1[1] > 2.:
+            logging.info("Failed to measure equivalent width at {rest_wavelength:.3f}: the FWHM was unreasonable ({fwhm:.2f})".format(rest_wavelength=rest_wavelength, fwhm=p1[1]))
             return [False, wl_start, wl_end, 'measured FWHM was greater than 2 Angstroms']
         
         # Is the answer reasonable?
         if np.abs(p1[0] - rest_wavelength) > tol_peak_difference:
+            logging.info("Failed to measure equivalent width at {rest_wavelength:.3f}: the central fitted wavelength ({final_wavelength:.3f}) was too far from the expected rest wavelength"
+                .format(rest_wavelength=rest_wavelength, final_wavelength=p1[0]))
             return [False, wl_start, wl_end, 'measured line centroid too far from initial guess: |%1.2f| > %1.2f' % (p1[0] - rest_wavelength, tol_peak_difference, )]
         
         # Force positive FWHM
@@ -442,16 +448,20 @@ def measure_line(spectrum, rest_wavelength, fwhm_guess, function='gaussian',
 
         except:
             # If we couldn't fit a rest_wavelength
+            logging.info("Failed to measure equivalent width at {rest_wavelength:.3f} in second pass: exception in second pass".format(rest_wavelength=rest_wavelength))
             return [False, wl_start, wl_end, 'exception in second pass']
         
         else:
-            
+             
             # Was the fitting successful?
             if ier not in range(5):
+                logging.info("Failed to measure equivalent width at {rest_wavelength:.3f} in second pass: the fitting algorithm returned error code {ier}"
+                    .format(rest_wavelength=rest_wavelength, ier=ier))
                 return [False, wl_start, wl_end, mesg]
             
             # Is the answer reasonable?
             if np.abs(p1[0] - rest_wavelength) > tol_peak_difference:
+                logging.info("Failed to measure equivalent width at {rest_wavelength:.3f} in second pass: the FWHM was unreasonable ({fwhm:.2f})".format(rest_wavelength=rest_wavelength, fwhm=p1[1]))
                 return [False, wl_start, wl_end, 'rest_wavelength pos tol |%1.2f| > %1.2f' % (p1[0] - rest_wavelength, tol_peak_difference, )]
             
             # Integrate to get the equivalent width
@@ -461,23 +471,29 @@ def measure_line(spectrum, rest_wavelength, fwhm_guess, function='gaussian',
             chi_sq = np.nan
 
             if ew[0] < 0:
-                return [False, wl_start, wl_end, 'negative equivalent width (%1.2f)' % (ew[0], )]
+                logging.info("Failed to measure equivalent width at {rest_wavelength:.3f} in second pass: the measured equivalent width was negative ({equivalent_width:.2f})"
+                    .format(rest_wavelength=rest_wavelength, equivalent_width=ew[0] * 1000))
+                return [False, wl_start, wl_end, 'negative equivalent width (%1.2f)' % (ew[0] * 1000, )]
             
             # We want to return the full profile across continuum_x
             fitted_y = profile_function(continuum_x, p1, continuum_y)
 
             p1 = list(p1)
+
             
             # If this is a Gaussian...
             # Convert profile sigma to FWHM: FWHM = profile_sigma * 2(2log2)^0.5
             if function == "gaussian":
                 p1[2] = p1[2] * profile_sigma_scale
 
+            logging.info("Measured equivalent width at {rest_wavelength:.3f} of {equivalent_width:.2f} milli Angstroms, with a FWHM of {fwhm:.2f} Angstroms"
+                .format(rest_wavelength=rest_wavelength, equivalent_width=ew[0] * 1000, fwhm=p1[1]))
+
             p1.insert(0, True)
             
             # Check for the proper format in exclusion_ranges
             if exclusion_ranges is not None and len(exclusion_ranges) == 2 and isinstance(exclusion_ranges[0], float):
                 exclusion_ranges = [exclusion_ranges]
-            
+
             p1.extend([wl_start, wl_end, ew[0], chi_sq, ier, continuum_x, fitted_y, exclusion_ranges])
             return p1

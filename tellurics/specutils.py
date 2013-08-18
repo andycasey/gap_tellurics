@@ -18,7 +18,7 @@ import numpy as np
 import pyfits
 
 from scipy import interpolate, ndimage, polyfit, poly1d
-from scipy.optimize import leastsq
+from scipy.optimize import fmin, leastsq
 
 
 __all__ = ['Spectrum', 'Spectrum1D']
@@ -698,7 +698,7 @@ class Spectrum1D(object):
         # NOTE: We may want to restrict this comparison to a given
         # wavelength band (e.g. infrared band A)
 
-        def minimize_chi_sq(parameters, telluric_spectrum):
+        def minimize_chi_sq(parameters, telluric):
             """Minimizes the \chi^2 difference between the observed and telluric
             spectrum.
 
@@ -710,29 +710,28 @@ class Spectrum1D(object):
                 and the additional Gaussian broadening kernel (`smooth`, [Angstroms]) to 
                 apply to the telluric spectrum.
 
-            telluric_spectrum : `Spectrum1D`
+            observed : `Spectrum1D`
+                The observed spectrum to use for the \chi^2 minimization.
+
+            telluric : `Spectrum1D`
                 The telluric spectrum to use for the \chi^2 minimization.
-
-            scale : `bool`, optional
-                Allow for a scaling factor in the telluric spectrum flux.
-
-            smooth : `bool`, optional
-                Allow for additional smoothing in the telluric spectrum flux.
             """
 
-            telluric_spectrum = telluric_spectrum.doppler_shift(v=parameters[0], interpolate=False)
+            # Copy telluric
+            telluric = Spectrum1D(disp=telluric.disp.copy(), flux=telluric.flux.copy())
+            telluric = telluric.doppler_shift(v=parameters[0], interpolate=False)
 
             if len(parameters) > 1:
-                telluric_spectrum.flux *= parameters[1]
+                telluric.flux *= parameters[1]
 
-            if len(parameters) > 2:
-                telluric_spectrum = telluric_spectrum.gaussian_smooth(parameters[2])
+            if len(parameters) > 2 and parameters[2] > 0:
+                telluric = telluric.gaussian_smooth(np.abs(parameters[2]))
 
             # Interpolate the telluric spectrum onto the observed dispersion
-            telluric_spectrum = telluric_spectrum.interpolate(self.disp)
+            telluric = telluric.interpolate(self.disp)
 
             # Calculate the \chi^2 difference in flux
-            difference = (self.flux - telluric_spectrum.flux)**2
+            difference = (self.flux - telluric.flux)**2
 
             # Do it properly if we have an uncertainty in the observed spectrum, since the
             # telluric spectrum itself may/may not be theoretical. This will be decided by
@@ -740,33 +739,54 @@ class Spectrum1D(object):
             if self.uncertainty is not None:
                 difference /= self.uncertainty
 
+            # Use only finite values
+            finite_indices = np.isfinite(difference)
+
             # Return the sum of the difference.
-            return np.sum(difference)
+            logging.debug((parameters, np.sum(difference[finite_indices])))
+            return np.sum(difference[finite_indices])
 
         # Create the initial parameters for optimization
         parameters = [0.0] # km/s shift in velocity
         if scale: parameters.append(1.0) # Flux scaling
         if smooth: parameters.append(0.0) # Angstroms additional smoothing (i.e. no smoothing)
 
-        best_parameters = scipy.optimize.fmin(minimize_chi_sq, parameters, (telluric_spectrum, ),)
+        best_parameters = fmin(minimize_chi_sq, parameters, (telluric_spectrum, ))
+
+        best_parameters = list(best_parameters)
 
         # Now that we have the "best parameters", we should apply those parameters to the telluric
         # spectrum and correct the observed spectrum.
         if len(best_parameters) < 3:
             best_parameters += [None] * (3 - len(best_parameters))
-
+        
         best_shift_factor, best_scale_factor, best_smooth_factor = best_parameters
+        
+        log_message = "Best fitting telluric factors being employed are: shift = {shift:.3f} km/s".format(shift=best_shift_factor)
 
-        # Apply those corrections to the telluric spectrum
-        telluric_spectrum = telluric_spectrum.doppler_shift(v=best_shift_factor, interpolate=False)
         if best_scale_factor is not None:
-            telluric_spectrum.flux *= best_scale_factor
+            log_message += ", {scale:.3f} scale factor".format(scale=best_scale_factor)
 
         if best_smooth_factor is not None:
-            telluric_spectrum = telluric_spectrum.gaussian_smooth(best_smooth_factor)
+            log_message += ", {smooth:.3f} Angstrom smoothing".format(smooth=best_smooth_factor)
+            best_smooth_factor = np.abs(best_smooth_factor)
 
+        logging.info(log_message)
+        
+        # Apply those corrections to the telluric spectrum
+        telluric_spectrum_copy = Spectrum1D(disp=telluric_spectrum.disp, flux=telluric_spectrum.flux)
+        idx = np.isfinite(telluric_spectrum_copy.flux)
+
+        telluric_spectrum_copy = telluric_spectrum_copy.doppler_shift(v=best_shift_factor, interpolate=False)
+
+        if best_scale_factor is not None:
+            telluric_spectrum_copy.flux *= best_scale_factor
+        
+        if best_smooth_factor is not None:
+            telluric_spectrum_copy = telluric_spectrum_copy.gaussian_smooth(best_smooth_factor)
+        
         # Correct the observed spectrum
-        corrected_observed_flux = self.flux / telluric_spectrum.interpolate(self.disp).flux
+        corrected_observed_flux = self.flux / telluric_spectrum_copy.interpolate(self.disp).flux
 
         # Return the corrected spectrum
         return self.__class__(self.disp, corrected_observed_flux, uncertainty=self.uncertainty, headers=self.headers)

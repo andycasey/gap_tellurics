@@ -1,7 +1,7 @@
 {
     "observed_filename": "data/observed_spectrum.fits",
     "telluric_filename": "data/telluric_spectrum.fits",
-    "atomic_line_list_filename": "data/atomic_lines.list",
+    "atomic_line_list_filename": "data/atomic-line.list",
     "initial_fwhm_guess": 0.1,
     "allow_shift": true,
     "allow_scale": true,
