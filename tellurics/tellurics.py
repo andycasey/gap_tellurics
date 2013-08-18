@@ -13,8 +13,12 @@ import os
 
 # Third-party
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import MaxNLocator
+
+except ImportError:
+    logging.warn("No matplotlib module found. Cannot produce debug plots.")
 
 # Module
 from specutils import Spectrum1D
