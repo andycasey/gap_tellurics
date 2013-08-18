@@ -9,6 +9,7 @@ __author__ = "Andy Casey <acasey@mso.anu.edu.au>"
 # Standard library
 import json
 import logging
+import os
 
 # Third-party
 import numpy as np
@@ -16,8 +17,7 @@ import numpy as np
 # Module
 import tellurics
 
-configuration_filename = '../HERMES.json'
-
+configuration_filename = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../HERMES.json')
 logging.basicConfig(level=logging.DEBUG)
 
 
