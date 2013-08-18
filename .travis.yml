@@ -9,5 +9,7 @@ virtualenv:
 before_install:
  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
 install:
-- sudo pip install pyfits
+ - pip install matplotlib --use-mirrors
+ - pip install scipy --use-mirrors
+ - pip install pyfits --use-mirrors
 script: nosetests
